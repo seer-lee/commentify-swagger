@@ -1,0 +1,29 @@
+
+management:
+  endpoint:
+    metrics:
+      enabled: true
+    health:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: metrics, health
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true # raw ??? ??? ?? actuator data ? json ???? ??
+
+swagger:
+  info:
+    title: swagger
+    description: ??? ?????
+    version: v1

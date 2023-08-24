@@ -1,0 +1,38 @@
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+<div class="opblock-section-header"><h4>댓글</h4></div>
+<div class="responses-inner">
+    <table class="table">
+        <thead>
+        <tr>
+            <th style="width:10%;">이름</th>
+            <th style="width:60%;">의견</th>
+            <th style="width:10%;">등록일</th>
+            <th style="width:10%;">수정일</th>
+            <th style="width:10%;">기능</th>
+        </tr>
+        </thead>
+        <tbody class="area-hover">
+        <tr th:each="data:${list}" th:with="method=${method}, path=${path}">
+            <td><span class="userName" th:text="${data.userName}"></span></td>
+            <td><span class="content" th:text="${data.content}"></span></td>
+            <td th:text="${#temporals.format(data.createDt, 'yyyy-MM-dd HH:mm')}"></td>
+            <td class="col-2" th:text="${#temporals.format(data.updateDt, 'yyyy-MM-dd HH:mm')}"></td>
+            <td>
+                <button type="button" class="btn btn-outline-secondary deleteBtn" th:id="${data.getId()}">삭제</button>
+            </td>
+        </tr>
+        <tr th:if="${list.size() == 0}">
+            <td style="text-align:center;padding:30px;" colspan="5">현재 등록된 댓글이 없습니다.</td>
+        </tr>
+        <tr class="add-comment-row">
+            <td colspan="5">
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control name" style="width:20%" placeholder="이름">
+                    <input type="text" class="form-control content" th:method="${method}" th:path="${path}">
+                    <button type="button" class="btn btn-outline-secondary createBtn">등록</button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

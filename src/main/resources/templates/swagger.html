@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta
+            name="description"
+            content="SwaggerUI"
+    />
+    <title>SwaggerApi</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css"/>
+</head>
+<body style="margin:0; !important;">
+<div id="api-html-container"></div>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js" crossorigin></script>
+<script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js" crossorigin></script>
+<script>
+    function handleCreateButtonClick(event) {
+        const button = event.target;
+        const td = button.parentNode;
+        const name = td.querySelector('.name');
+        const content = td.querySelector('.content');
+        const method = content.getAttribute('method');
+        const path = content.getAttribute('path');
+
+        fetch("/comment", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                userName: name.value,
+                content: content.value,
+                method: method,
+                path: path,
+                isDelete: 'n'
+            })
+        }).then(() => {
+            alert('등록 완료되었습니다.');
+            location.replace("/swagger");
+        })
+    }
+
+
+    function handleDeleteButtonClick(event) {
+        const button = event.target;
+        const id = button.getAttribute('id');
+
+        const tr = button.closest('tr');
+        button.disabled = true; // 버튼 비활성화
+
+        const requestData = {
+            id: id
+        }
+
+        fetch("/comment", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+        }).then(response => {
+            if (response.ok) {
+                alert('삭제 완료되었습니다.');
+                location.replace("/swagger");
+            } else {
+                throw new Error('삭제 실패하였습니다.');
+            }
+        }).catch(error => {
+            alert(error.message);
+        }).finally(() => {
+            button.disabled = false; // 버튼 다시 활성화
+        });
+    }
+
+    window.onload = function () {
+        fetch('/v3/api-docs')
+            .then(response => response.json())
+            .then(spec => {
+                const ui = SwaggerUIBundle({
+                    spec: spec,
+                    dom_id: '#swagger-ui',
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    layout: "StandaloneLayout",
+                });
+
+                const opblockSelector = '[class^="opblock opblock-"]';
+                const opblocks = document.querySelectorAll(opblockSelector);
+
+                opblocks.forEach(opblock => {
+                    // 로딩 후에 foreach 되게 하기 , 커스텀 스웨거에 에러코드
+                    const methodSpan = opblock.querySelector('.opblock-summary-method');
+                    const pathSpan = opblock.querySelector('.opblock-summary-path');
+
+                    if (methodSpan && pathSpan) {
+                        const method = methodSpan.textContent.trim();
+                        const path = pathSpan.querySelector('span').textContent.trim();
+                        // 클릭 이벤트 리스너 추가
+                        opblock.addEventListener('click', () => {
+                            const logElementDrawn = () => {
+                                const noMargin = opblock.querySelector('.no-margin');
+                                const opinion = opblock.querySelector('.opinion-wrapper')
+                                if (noMargin && !opinion) {
+                                    fetch(`/comment?method=${method}&path=${encodeURI(path)}`)
+                                        // path 의 {id} 같은 부분이 있어서 encodeUri 로 감싼다.
+                                        .then(response => response.text())
+                                        .then(html => {
+                                            const newContent = document.createElement('div');
+                                            newContent.classList.add('opinion-wrapper');
+                                            newContent.innerHTML = html; // HTML 파일의 내용을 추가
+                                            noMargin.appendChild(newContent);
+
+                                            const createButtons = document.querySelectorAll('.createBtn');
+                                            const modifyButtons = document.querySelectorAll('.modifyBtn');
+                                            const deleteButtons = document.querySelectorAll('.deleteBtn');
+
+                                            for (let i = 0; i < createButtons.length; i++) {
+                                                const createButton = createButtons[i];
+                                                createButton.addEventListener('click', handleCreateButtonClick);
+                                            }
+                                            for (let i = 0; i < modifyButtons.length; i++) {
+                                                const modifyButton = modifyButtons[i];
+                                                modifyButton.addEventListener('click', handleModifyButtonClick);
+                                            }
+                                            for (let i = 0; i < deleteButtons.length; i++) {
+                                                const deleteButton = deleteButtons[i];
+                                                deleteButton.addEventListener('click', handleDeleteButtonClick);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error loading HTML file:', error);
+                                        });
+                                }
+                            };
+                            requestAnimationFrame(logElementDrawn);
+                        });
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Failed to load Swagger spec:', error);
+            });
+    };
+</script>
+</body>
+</html>

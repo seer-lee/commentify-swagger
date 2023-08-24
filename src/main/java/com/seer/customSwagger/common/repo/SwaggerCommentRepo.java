@@ -9,6 +9,4 @@ import java.util.List;
 
 public interface SwaggerCommentRepo extends JpaRepository<SwaggerComment, Long> {
     List<SwaggerComment> findByMethodAndPathAndIsDelete(String method, String path, IsYn isYn);
-    List<SwaggerComment> findByMethodAndPath(String method, String path);
-
 }
